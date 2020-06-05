@@ -1,4 +1,5 @@
-#include "Song.h"
+#include "Note.h"
+
 List::List()
 {
 	head = nullptr;

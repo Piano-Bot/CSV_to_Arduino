@@ -1,5 +1,5 @@
-#ifndef   __Song__
-#define   __Song__
+#ifndef   __Note__
+#define   __Note__
 #include <iostream>
 #include <fstream>
 
