@@ -1,43 +1,47 @@
 #ifndef   __Hand__
 #define   __Hand__
 #include <iostream>
+#include <vector>
 #include <fstream>
 
-struct stamp
+// State to store each instance of a key-press changes
+struct state
 {
 	int time;
-	int LHfingOn;
-	int LHfingOff;
-	int RHfingOn;
-	int RHfingOff;
-	stamp* next;
+	bool fingers[8];
 };
 
-struct node
+// Hand positions struct to store the next ahnd position
+struct handPos
 {
-	int LHpos;
-	int RHpos;
-	stamp* head;
-	stamp* tail;
-	node* next;
+	int time;
+	int pos;
+	vector<state> states;
 };
 
 using namespace std;
-class List
+
+// Hand Class
+class Hand
 {
 private:
-	node* head;
-	node* tail;
-	//Set up output file to input into Arduino
-	fstream outFile;
+	// Vector to store all hand positions
+	vector<handPos> positions;
+	int posNum;
+	int stateNum;
+
 public:
-	List();
-	~List();
-	void createNode(int LHposition, int RHposition);
-	void addStamp(int time, int hand, int fingOn, int fingOff);
-	void printTimeline(void);
-	void createArduino(void);
-	int howFar(int handPos, int note);
-	int nextNote(int current, int notesToMove);
+	// Constructor and destructor
+	Hand();
+	~Hand();
+
+	// Adding hand positions and states
+	void addHandPos(int time, int position);
+	void addState(int time, bool fingers[8]);
+	bool canMove();
+	bool inRange(int note);
+	int getHandPos();
+	state getState();
+	
 };
 #endif

@@ -1,174 +1,143 @@
 #include "Song.h"
-List::List()
-{
-	head = nullptr;
-	tail = nullptr;
-}
-List::~List() {}
-void List::createNode(int LHposition, int RHposition)
-{
-	node* temp = new node;
-	temp->LHpos = LHposition;
-	temp->RHpos = RHposition;
-	temp->head = nullptr;
-	temp->tail = nullptr;
-	if (head == nullptr)
-	{
-		head = temp;
-		tail = temp;
-		tail->next = nullptr;
-		temp = nullptr;
-	}
-	else
-	{
-		tail->next = temp;
-		tail = temp;
-		tail->next = nullptr;
-	}
-}
-void List::addStamp(int time, int hand, int fingOn, int fingOff)
-{
-	stamp* temp = new stamp;
-	temp->time = time;
-	//Set hand's on/off fingers
-	if (hand == 0)
-	{
-		temp->LHfingOn = fingOn;
-		temp->LHfingOff = fingOff;
-		temp->RHfingOn = 0;
-		temp->RHfingOff = 0;
-	}
-	else
-	{
-		temp->RHfingOn = fingOn;
-		temp->RHfingOff = fingOff;
-		temp->LHfingOn = 0;
-		temp->LHfingOff = 0;
-	}
 
-	temp->next = nullptr;
-	if (tail->head == nullptr)
-	{
-		tail->head = temp;
-		tail->tail = temp;
-		temp = nullptr;
-	}
-	else
-	{
-		tail->tail->next = temp;
-		tail->tail = temp;
-	}
-}
-
-void List::printTimeline(void)
+Song::Song() 
 {
-	node* ptr = new node;
-	ptr = head;
-	stamp* temp = new stamp;
-	while (ptr != nullptr)
-	{
-		temp = ptr->head;
-		cout << "Hand position LH/RH: " << ptr->LHpos << " " << ptr->RHpos << endl;
-		while (temp != nullptr)
-		{
-			cout << "Time (microseconds): " << temp->time << endl;
-			cout << "LH on/off: " << temp->LHfingOn << " " << temp->LHfingOff << endl << "RH on/off: " << temp->RHfingOn << " " << temp->RHfingOff << endl;
-			temp = temp->next;
-		}
-		ptr = ptr->next;
-	}
+	currLine = 0;
 }
+Song::~Song() {}
 
-void List::createArduino(void)
+// Import song data into the vectors
+void Song::importSong()
 {
-	int preLH = 36;
-	int preRH = 60;
-	int preTime = -1;
-	int start = 1;
-	node* ptr = new node;
-	ptr = head;
-	stamp* temp = new stamp;
-	outFile.open("pianocontrol.txt", ios::out);
-	if (!outFile)
+    // Set up midi file to get information
+	fstream inFile;
+
+	// Open up file
+	inFile.open("Twinkle.txt", ios::in);
+	if (!inFile)
 	{
 		cout << "Unable to open file";
-		exit(1); // terminate with error
+		exit(1); // Terminate with error
 	}
 
-	while (ptr != nullptr)
-	{
-		outFile << "H";
-		if (ptr->LHpos - preLH > 0)
-			outFile << "1_" << ptr->LHpos - preLH;
-		else if (ptr->LHpos - preLH < 0)
-			outFile << "0_" << preLH - ptr->LHpos;
-		else
-			outFile << "0_0";
-		outFile << "h";
-		if (ptr->RHpos - preRH > 0)
-			outFile << "1_" << ptr->RHpos - preRH;
-		else if (ptr->RHpos - preRH < 0)
-			outFile << "0_" << preRH - ptr->RHpos;
-		else
-			outFile << "0_0";
+	// Buffer to store input values
+	string buffer;
 
-		temp = ptr->head;
-		while (temp != nullptr)
+	// Reset row for a new song
+	row = 0;
+
+	// Flag to determine which column it is during input
+	int flag = 0;
+
+	// Loop through to save all the values
+	while (!inFile.eof())
+	{
+		if (flag == 0)
 		{
-			if (preTime != temp->time || start == 1)
-			{
-				preTime = temp->time;
-				outFile << "t" << preTime;
-				start = 0;
-			}
-			outFile << "f";
-			if (temp->LHfingOn != 0)
-				outFile << "0_" << "1" << temp->LHfingOn;
-			else if (temp->LHfingOff != 0)
-				outFile << "0_" << "0" << temp->LHfingOff;
-			else if (temp->RHfingOn != 0)
-				outFile << "1_" << "1" << temp->RHfingOn;
-			else if (temp->RHfingOff != 0)
-				outFile << "1_" << "0" << temp->RHfingOff;
-			temp = temp->next;
+			// Get data from CSV file
+			getline(inFile, buffer, ',');
+
+			// Append to the vector
+			if (!buffer.empty())
+				time.push_back(stoi(buffer));
+			
+			// For debugging
+			//cout << time[row] << ", ";
+
+			// Increment counter to onOff
+			flag++;
 		}
-		start = 1;
-		outFile << endl;
-		preLH = ptr->LHpos;
-		preRH = ptr->RHpos;
-		ptr = ptr->next;
-	}
-}
+		else if (flag == 1)
+		{
+			// Get data from CSV file
+			getline(inFile, buffer, ',');
 
-int List::howFar(int handPos, int note)
-{
-	int i;
-	if (note < handPos)
-	{
-		for (i = 0; i++; i < 100)
-		{
-			if (note + nextNote(note, i) == handPos)
-				return -i;
+			// Append to the vector
+			if (!buffer.empty())
+				onOff[row] = stoi(buffer);
+
+			// For debugging
+			//cout << onOff[row] << ", ";
+
+			// Increment counter to note
+			flag++;
 		}
-	}
-	else
-	{
-		for (i = 0; i++; i < 100)
+		else
 		{
-			if (handPos + 12 + nextNote(handPos + 12, i) == note)
-				return i;
+			// Get data from CSV file
+			getline(inFile, buffer, '\n');
+
+			// Append to the vector
+			if (!buffer.empty())
+				note[row] = stoi(buffer);
+
+			// For debugging
+			//cout << note[row] << "\n";
+
+			// Increment for one row of data
+			row++;
+
+			// Reset counter to time
+			flag = 0;
 		}
 	}
 }
 
-int List::nextNote(int current, int notesToMove)
+// Export current objects into an arduino .txt file
+bool Song::exportArduino()
 {
+	// TO-DO:
+	// Iterate through both hand objects
+	// Save the necessary values to the .txt file through 
+}
+
+// Add the next line of data from time, onOff, and note to the Hand classes
+bool Song::addLine()
+{
+	// TO-DO:
+	// If there is data remaining
+	// Add the data to the hand
+	// If it is the first line of data, use initialLH() and initialRH() to
+	// initialize hand positions
+	// If new hand position, create a new function to figure out which 
+	// (if not both) hand needs to move to a new position
+	// Return false to indicate that data remains to be added
+
+	// If there is no data left
+	// Return true to indicate completion
+
+	// This function should check that the hands will not collide or exceed
+	// boundaries of the piano
+}
+
+// Find initial starting left hand position
+int Song::initialLH()
+{
+	// TO-DO:
+	// Use the vector data to determine the initial LH position
+}
+
+// Find initial starting right hand position
+int Song::initialRH()
+{
+	// TO-DO:
+	// Making use of initialLH() and vector data, find the initial RH position
+}
+
+// Checks how far do I need to move for a note in semitones
+int Song::nextNote(int current, int notesToMove)
+{
+	// Get relative position (removing octaves)
 	int pos = current % 12;
-	int pos_note;
+
+	// Calculate # octaves
 	int octaves = notesToMove / 12;
-	int relative = notesToMove % 7;
-	int num;
-	int reference[7][7] =
+
+	// Used to store # semitones
+	int semitones;
+
+	// Used to determine number of semitones to move one white key over
+	int reference[7][7] = 
 	{
 		{ 0,2,4,5,7,9,11 },
 		{ 0,2,3,5,7,9,10 },
@@ -178,34 +147,63 @@ int List::nextNote(int current, int notesToMove)
 		{ 0,2,3,5,7,8,10 },
 		{ 0,1,3,5,6,8,10 }
 	};
-	switch (pos)
+
+	// Matches relative white key position (to use in the array) based on note
+	// 0 -> 0  |  2 -> 1  |  4 -> 2  |  5 -> 3  |  7 -> 4  |  9 -> 5  |  11 -> 6
+	// The unused indices are set to -1
+	int relativeHandPos[12] = {0, -1, 1, -1, 2, 3, -1, 4, -1, 5, -1, 6}
+	
+	// Use reference array to determine # semitones + 12 per octave
+	semitones = reference[relativeHandPos[pos]][notesToMove];
+	semitones += octaves * 12;
+
+	return semitones;
+}
+
+// NOTE: CURRENTLY ONLY FINDS THE FINGER ON THE WHITE NOTES
+// Finds which finger of the in-range note (from 1 to 8)
+int Song::findFing(int handPos, int note)
+{
+	for (int i = 0; i < 8; i++)
 	{
-	case 0:
-		pos_note = 0;
-		break;
-	case 2:
-		pos_note = 1;
-		break;
-	case 4:
-		pos_note = 2;
-		break;
-	case 5:
-		pos_note = 3;
-		break;
-	case 7:
-		pos_note = 4;
-		break;
-	case 9:
-		pos_note = 5;
-		break;
-	case 11:
-		pos_note = 6;
-		break;
-	default:
-		cout << "Included black keys\n";
-		break;
+		if (handPos + nextNote(handPos, i) == note)
+			return i + 1;
 	}
-	num = reference[pos_note][notesToMove];
-	num += octaves * 12;
-	return num;
+
+	// No finger matches the note
+	return -1;
+}
+
+// NOTE: CURRENTLY ONLY FINDS THE FINGER ON THE WHITE NOTES
+// Calculates how far to move a hand, +ve or -ve (in semitones)
+int Helper::howFar(int handPos, int note)
+{
+	// If in range of the current hand (theoretically should never execute)
+	if (note >= handPos && note < handPos + 12)
+	{
+		// Return no motion
+		return 0;
+	}
+	// If note is to the left of the hand position
+	else if (note < handPos)
+	{
+		// NOTE: NEEDS UPDATING, THIS CODE IS INEFFICIENT
+		// Could use difference between hand position and note instead
+		for (int i = 0; i++; i < 100)
+		{
+			if (note + nextNote(note, i) == handPos)
+				return -i;
+		}
+	}
+	// If note is to the right of the hand position
+	else
+	{
+		// NOTE: NEEDS UPDATING, THIS CODE IS INEFFICIENT
+		// Could use difference between hand position and note instead
+		for (int i = 0; i++; i < 100)
+		{
+			if (handPos + 12 + nextNote(handPos + 12, i) == note)
+				return i;
+		}
+	}
 }
