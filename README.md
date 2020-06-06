@@ -3,7 +3,7 @@ Conversion Script to convert from the MIDI to CSV output into Arduino-actionable
 ---
 The goals / steps of this project are the following:
 * Implement a conversion system from .csv data to Arduino-actionable inputs
-* Create hand path optimizations to improve the smoothness of playing
+* Create hand path optimizations to improve the smoothness of hand motions while playing
 * Develop a deeper understanding of C++ programming
 * Add on extensions that can be used to create simulations with graphics
 
