@@ -31,11 +31,10 @@ private:
 	int stateNum;
 
 public:
-	// Constructor and destructor
+	// Function details can be found in .cpp file
 	Hand();
 	~Hand();
 
-	// Adding hand positions and states
 	void addHandPos(int time, int position);
 	void addState(int time, bool fingers[8]);
 	bool canMove();

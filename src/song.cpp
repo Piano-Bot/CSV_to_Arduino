@@ -9,10 +9,7 @@ Song::~Song() {}
 // Import song data into the vectors
 void Song::importSong()
 {
-    // Set up midi file to get information
-	fstream inFile;
-
-	// Open up file
+ 	// Open up file
 	inFile.open("Twinkle.txt", ios::in);
 	if (!inFile)
 	{
@@ -83,12 +80,28 @@ void Song::importSong()
 	}
 }
 
+// NOTE: INCOMPLETE
 // Export current objects into an arduino .txt file
-bool Song::exportArduino()
+void Song::exportArduino()
 {
 	// TO-DO:
 	// Iterate through both hand objects
-	// Save the necessary values to the .txt file through 
+	// Save the necessary values to the .txt file through
+
+	// Open/create a new file to store the output for Arduino
+	outFile.open("pianocontrol.txt", ios::out);
+	if (!outFile)
+	{
+		cout << "Unable to open file";
+		exit(1); // Terminate with error
+	}
+
+	// Loop until complete
+	while (true)
+	{
+		// Example of out to output to file
+		outFile << "H";
+	}
 }
 
 // Add the next line of data from time, onOff, and note to the Hand classes

@@ -14,19 +14,31 @@ const int limitL = 48; // Left limit
 const int limitR = 108; // Right limit
 
 using namespace std;
+
 class Song
 {
 private:
 	// Left and right hand variables
 	Hand LH;
 	Hand RH;
+
+	// Vectors to store data from .csv file
 	vector<int> time;
 	vector<int> onOff;
 	vector<int> note;
+
+	// Input/ouput file streams
+	fstream outFile;
+	fstream inFile;
+
+	// Total rows of data
 	int row;
+
+	// Current line of data
 	int currLine;
 
 public:
+	// Function details can be found in .cpp file
 	Song();
 	~Song();
 
