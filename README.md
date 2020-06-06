@@ -1,5 +1,5 @@
 # CSV_to_Arduino
-Conversion Script to convert from the MIDI to CSV output into Arduino-readable input
+Conversion Script to convert from the MIDI to CSV output into Arduino-actionable input
 ---
 The goals / steps of this project are the following:
 * Implement a conversion system from .csv data to Arduino-actionable inputs
