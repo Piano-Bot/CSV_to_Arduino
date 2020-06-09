@@ -12,9 +12,9 @@ The goals / steps of this project are the following:
 
 In the `src` folder, the files include:
 * `main.cpp` - Create an instance of a song and calls high-level functions
-* `Song.h` - Header for the Song object
+* `Song.h` - Header for the Song class
 * `Song.cpp` - Adds hand positions and states based on stored data and performs optimizations
-* `Hand.h` - Header for the Hand object
+* `Hand.h` - Header for the Hand class
 * `Hand.cpp` - Stores data on the hand positions/states and provides information on an individual hand
 
 ---
