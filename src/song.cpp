@@ -140,6 +140,7 @@ int Song::initialHandPos()
 		// Check distance from first note
 		if (abs(note[i] - note.front()) > handBuffer) 
 		{
+			// Put the rightmost note on the RH, and leftmost on LH
 			if (note[i] > note.front())
 			{
 				LHstart = note.front();
@@ -150,12 +151,14 @@ int Song::initialHandPos()
 				LHstart = note[i];
 				RHstart = note.front();
 			}
+
 			// Hand positions have been set
 			flag = true;
 			break;
        	}
 	}
 
+	// If hand positions were set, use to initial hands
 	if (flag)
 	{
 		RH.addHandPos(0, RHstart);
