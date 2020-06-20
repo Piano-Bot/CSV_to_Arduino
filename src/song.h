@@ -37,6 +37,10 @@ private:
 	// Current line of data
 	int currLine;
 
+	// Buffer to indicate distance between initialized hand positions
+	// Note: Must be >12 to ensure hands do not physically collide
+	const int handBuffer = 12;
+
 public:
 	// Function details can be found in .cpp file
 	Song();
@@ -45,8 +49,7 @@ public:
 	void importSong();
 	void exportArduino();
 	bool addLine();
-	int initialLH();
-	int initialRH();
+	int initialHandPos();
 	int nextNote(int current, int notesToMove);
 	int findFing(int handPos, int note);
     int howFar(int handPos, int note);

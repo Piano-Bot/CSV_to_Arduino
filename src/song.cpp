@@ -51,7 +51,7 @@ void Song::importSong()
 
 			// Append to the vector
 			if (!buffer.empty())
-				onOff[row] = stoi(buffer);
+				onOff.push_back(stoi(buffer));
 
 			// For debugging
 			//cout << onOff[row] << ", ";
@@ -66,7 +66,7 @@ void Song::importSong()
 
 			// Append to the vector
 			if (!buffer.empty())
-				note[row] = stoi(buffer);
+				note.push_back(stoi(buffer));
 
 			// For debugging
 			//cout << note[row] << "\n";
@@ -123,25 +123,59 @@ bool Song::addLine()
 	// boundaries of the piano
 }
 
-// Find initial starting left hand position
-int Song::initialLH()
+// Find initial starting hand positions using the note vector and buffer
+int Song::initialHandPos()
 {
-	// TO-DO:
-	// Use the vector data to determine the initial LH position
-}
+	// Initialize variables to store initial hand positions
+	int RHstart;
+	int LHstart;
 
-// Find initial starting right hand position
-int Song::initialRH()
-{
-	// TO-DO:
-	// Making use of initialLH() and vector data, find the initial RH position
+	// Flag to determine if the hand positions were set
+	int flag = false;
+
+	// Loop through all notes to find one that is far away from the first
+	// Minimum distance set by handBuffer
+	for (int i = 1; i < note.size(); i++) 
+	{
+		// Check distance from first note
+		if (abs(note[i] - note.front()) > handBuffer) 
+		{
+			if (note[i] > note.front())
+			{
+				LHstart = note.front();
+				RHstart = note[i];
+			}
+			else
+			{
+				LHstart = note[i];
+				RHstart = note.front();
+			}
+			// Hand positions have been set
+			flag = true;
+			break;
+       	}
+	}
+
+	if (flag)
+	{
+		RH.addHandPos(0, RHstart);
+		LH.addHandPos(0, LHstart);
+	}
+	else
+	{
+		cout << "No note was >" << handBuffer << " semitones away." << endl;
+		cout << "Hand positions were not set." << endl;
+	}
 }
 
 // Checks how far do I need to move for a note in semitones
-int Song::nextNote(int current, int notesToMove)
+// Param: handPos is the current thumb position of hand
+// Param: notesToMove is how many semit
+// 
+int Song::nextNote(int handPos, int notesToMove)
 {
 	// Get relative position (removing octaves)
-	int pos = current % 12;
+	int pos = handPos % 12;
 
 	// Calculate # octaves
 	int octaves = notesToMove / 12;
@@ -164,7 +198,7 @@ int Song::nextNote(int current, int notesToMove)
 	// Matches relative white key position (to use in the array) based on note
 	// 0 -> 0  |  2 -> 1  |  4 -> 2  |  5 -> 3  |  7 -> 4  |  9 -> 5  |  11 -> 6
 	// The unused indices are set to -1
-	int relativeHandPos[12] = {0, -1, 1, -1, 2, 3, -1, 4, -1, 5, -1, 6}
+	int relativeHandPos[12] = {0, -1, 1, -1, 2, 3, -1, 4, -1, 5, -1, 6};
 	
 	// Use reference array to determine # semitones + 12 per octave
 	semitones = reference[relativeHandPos[pos]][notesToMove];
@@ -172,6 +206,7 @@ int Song::nextNote(int current, int notesToMove)
 
 	return semitones;
 }
+
 
 // NOTE: CURRENTLY ONLY FINDS THE FINGER ON THE WHITE NOTES
 // Finds which finger of the in-range note (from 1 to 8)
@@ -189,7 +224,7 @@ int Song::findFing(int handPos, int note)
 
 // NOTE: CURRENTLY ONLY FINDS THE FINGER ON THE WHITE NOTES
 // Calculates how far to move a hand, +ve or -ve (in semitones)
-int Helper::howFar(int handPos, int note)
+int song::howFar(int handPos, int note)
 {
 	// If in range of the current hand (theoretically should never execute)
 	if (note >= handPos && note < handPos + 12)
