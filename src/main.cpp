@@ -24,6 +24,12 @@ int main(void)
 	while (!done)
 	{
 		done = song.addLine();
+
+		// In case of error during adding lines
+		if (done == -1)
+		{
+			break;
+		}
 	}
 	
 	// Export code in arduino format

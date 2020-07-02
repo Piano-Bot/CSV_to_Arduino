@@ -24,7 +24,7 @@ private:
 
 	// Vectors to store data from .csv file
 	vector<int> time;
-	vector<int> onOff;
+	vector<bool> onOff;
 	vector<int> note;
 
 	// Input/ouput file streams
@@ -49,9 +49,7 @@ public:
 	void importSong();
 	void exportArduino();
 	bool addLine();
-	int initialHandPos();
-	int nextNote(int current, int notesToMove);
+	int initializeHandPos();
 	int findFing(int handPos, int note);
-    int howFar(int handPos, int note);
 };
 #endif

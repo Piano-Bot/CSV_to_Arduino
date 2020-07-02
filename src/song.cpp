@@ -4,6 +4,7 @@ Song::Song()
 {
 	currLine = 0;
 }
+
 Song::~Song() {}
 
 // Import song data into the vectors
@@ -80,7 +81,6 @@ void Song::importSong()
 	}
 }
 
-// NOTE: INCOMPLETE
 // Export current objects into an arduino .txt file
 void Song::exportArduino()
 {
@@ -96,35 +96,173 @@ void Song::exportArduino()
 		exit(1); // Terminate with error
 	}
 
+	// Initialize variables for the loop
+	bool moveLH;
+	int moveDistLH;
+	bool moveRH;
+	int moveDistRH;
+	int timeLH;
+	int timeRH;
+
+
 	// Loop until complete
 	while (true)
 	{
+		
 		// Example of out to output to file
-		outFile << "H";
+		outFile << "H" << 
 	}
 }
 
 // Add the next line of data from time, onOff, and note to the Hand classes
+// Note: Some redundancies and copy-pastes could be removed for clarity
 bool Song::addLine()
 {
-	// TO-DO:
-	// If there is data remaining
-	// Add the data to the hand
-	// If it is the first line of data, use initialLH() and initialRH() to
-	// initialize hand positions
-	// If new hand position, create a new function to figure out which 
-	// (if not both) hand needs to move to a new position
-	// Return false to indicate that data remains to be added
+	int moveDistLH = LH.handMoveDist(note[currLine]);
+	int moveDistRH = RH.handMoveDist(note[currLine]);
+	int currTime = time[currLine];
+	bool currOnOff = onOff[currLine];
+	bool moveRH; // Indicate if RH or LH needs to move
+	bool keyRH; // Indicate if RH or LH adds a state
 
-	// If there is no data left
-	// Return true to indicate completion
+	// If first line, need to initialize and positions
+	if (currLine == 0)
+	{
+		// Initialize positions such that the first note will be within one
+		// of the hands' span
+		initializeHandPos();
+		if (moveDistLH == 0)
+		{
+			keyRH = false;
+		}
+		else
+		{
+			keyRH = true;
+		}
+	}
+	// Otherwise, hand might need to move
+	else
+	{
+		// If the note is within range of one of the hands
+		if (moveDistLH == 0 || moveDistRH == 0)
+		{
+			if (moveDistLH == 0)
+			{
+				keyRH = false;
+			}
+			else
+			{
+				keyRH = true;
+			}
+		}
+		// If the note is out of range of both hands
+		// Move nearest hand if it is movable
+		// 3 Cases:
+		// 	Left of LH
+		// 	Right of RH
+		// 	Between both hands
+		// Otherwise error (return -1)
+		else
+		{
+			// Case 1: Left of LH
+			if (moveDistLH < 0)
+			{
+				if (LH.canMove() == false)
+				{
+					cout << "Note left of LH but is already pressing a key";
+					return -1;
+				}
+				moveRH = false;
+				keyRH = false;
+			}
 
-	// This function should check that the hands will not collide or exceed
-	// boundaries of the piano
+			// Case 2: Right of RH
+			else if (moveDistRH > 0)
+			{
+				if (RH.canMove() == false)
+				{
+					cout << "Note right of RH but is already pressing a key";
+					return -1;
+				}
+				moveRH = true;
+				keyRH = true;
+			}
+
+			// Case 3: Between both hands
+			else
+			{
+				// Neither hand can move
+				if (RH.canMove() == false && LH.canMove() == false)
+				{
+					cout << "Neither hand can move, pressing a key";
+					return -1;
+				}
+
+				// Only LH can move
+				else if (RH.canMove() == false)
+				{
+					moveRH = false;
+					keyRH = false;
+				}
+
+				// Only RH can move
+				else if (LH.canMove() == false)
+				{
+					moveRH = true;
+					keyRH = true;
+				}
+
+				// Both hands can move
+				else
+				{
+					// If LH is further away or equal distance away
+					// Priority to the hand playing the melody
+					if (fabs(moveDistLH) >= fabs(moveDistRH))
+					{
+						moveRH = true;
+						keyRH = true;
+					}
+
+					// If RH is further away
+					else
+					{
+						moveRH = false;
+						keyRH = false;
+					}
+				}
+			}
+		}
+	}
+
+	// First move the hand if needed
+	if (moveRH)
+	{
+		// Obtain new needed hand position
+		int newPos = RH.getHandPos() + moveRH;
+		RH.addHandPos(currTime, newPos);
+	}
+	else
+	{
+		// Obtain new needed hand position
+		int newPos = LH.getHandPos() + moveDistLH;
+		LH.addHandPos(currTime, newPos);
+	}
+
+	// Then, add the finger state
+	if (keyRH)
+	{
+		RH.addState(currTime, RH.findFinger(note[currLine]), currOnOff);
+	}
+	else
+	{
+		LH.addState(currTime, LH.findFinger(note[currLine]), currOnOff);
+	}
+	
+	return true;
 }
 
 // Find initial starting hand positions using the note vector and buffer
-int Song::initialHandPos()
+int Song::initializeHandPos()
 {
 	// Initialize variables to store initial hand positions
 	int RHstart;
@@ -168,93 +306,5 @@ int Song::initialHandPos()
 	{
 		cout << "No note was >" << handBuffer << " semitones away." << endl;
 		cout << "Hand positions were not set." << endl;
-	}
-}
-
-// Checks how far do I need to move for a note in semitones
-// Param: handPos is the current thumb position of hand
-// Param: notesToMove is how many semit
-// 
-int Song::nextNote(int handPos, int notesToMove)
-{
-	// Get relative position (removing octaves)
-	int pos = handPos % 12;
-
-	// Calculate # octaves
-	int octaves = notesToMove / 12;
-
-	// Used to store # semitones
-	int semitones;
-
-	// Used to determine number of semitones to move one white key over
-	int reference[7][7] = 
-	{
-		{ 0,2,4,5,7,9,11 },
-		{ 0,2,3,5,7,9,10 },
-		{ 0,1,3,5,7,8,10 },
-		{ 0,2,4,6,7,9,11 },
-		{ 0,2,4,5,7,9,10 },
-		{ 0,2,3,5,7,8,10 },
-		{ 0,1,3,5,6,8,10 }
-	};
-
-	// Matches relative white key position (to use in the array) based on note
-	// 0 -> 0  |  2 -> 1  |  4 -> 2  |  5 -> 3  |  7 -> 4  |  9 -> 5  |  11 -> 6
-	// The unused indices are set to -1
-	int relativeHandPos[12] = {0, -1, 1, -1, 2, 3, -1, 4, -1, 5, -1, 6};
-	
-	// Use reference array to determine # semitones + 12 per octave
-	semitones = reference[relativeHandPos[pos]][notesToMove];
-	semitones += octaves * 12;
-
-	return semitones;
-}
-
-
-// NOTE: CURRENTLY ONLY FINDS THE FINGER ON THE WHITE NOTES
-// Finds which finger of the in-range note (from 1 to 8)
-int Song::findFing(int handPos, int note)
-{
-	for (int i = 0; i < 8; i++)
-	{
-		if (handPos + nextNote(handPos, i) == note)
-			return i + 1;
-	}
-
-	// No finger matches the note
-	return -1;
-}
-
-// NOTE: CURRENTLY ONLY FINDS THE FINGER ON THE WHITE NOTES
-// Calculates how far to move a hand, +ve or -ve (in semitones)
-int song::howFar(int handPos, int note)
-{
-	// If in range of the current hand (theoretically should never execute)
-	if (note >= handPos && note < handPos + 12)
-	{
-		// Return no motion
-		return 0;
-	}
-	// If note is to the left of the hand position
-	else if (note < handPos)
-	{
-		// NOTE: NEEDS UPDATING, THIS CODE IS INEFFICIENT
-		// Could use difference between hand position and note instead
-		for (int i = 0; i++; i < 100)
-		{
-			if (note + nextNote(note, i) == handPos)
-				return -i;
-		}
-	}
-	// If note is to the right of the hand position
-	else
-	{
-		// NOTE: NEEDS UPDATING, THIS CODE IS INEFFICIENT
-		// Could use difference between hand position and note instead
-		for (int i = 0; i++; i < 100)
-		{
-			if (handPos + 12 + nextNote(handPos + 12, i) == note)
-				return i;
-		}
 	}
 }

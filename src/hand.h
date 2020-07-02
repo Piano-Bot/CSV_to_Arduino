@@ -9,7 +9,7 @@
 struct state
 {
 	int time;
-	bool fingers[8];
+	bool fingers[16];
 };
 
 // Hand positions struct to store the next ahnd position
@@ -37,12 +37,12 @@ public:
 	~Hand();
 
 	void addHandPos(int time, int position);
-	void addState(int time, bool fingers[8]);
+	void addState(int time, int finger, bool onOff);
 	bool canMove();
-	bool inRange(int note);
 	int getHandPos();
 	state getState();
-	int handMoveDist(int note)
+	int handMoveDist(int note);
+	int findFinger(int note);
 	
 };
 #endif
