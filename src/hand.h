@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <math.h>
 
 // State to store each instance of a key-press changes
 struct state
@@ -41,6 +42,7 @@ public:
 	bool inRange(int note);
 	int getHandPos();
 	state getState();
+	int handMoveDist(int note)
 	
 };
 #endif
