@@ -108,9 +108,9 @@ void Song::exportArduino()
 	// Loop until complete
 	while (true)
 	{
-		
+
 		// Example of out to output to file
-		outFile << "H" << 
+		outFile << "H";
 	}
 }
 
