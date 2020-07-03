@@ -82,8 +82,17 @@ void Song::importSong()
 }
 
 // Export current objects into an arduino .txt file
+// Output Formatting: (RH)(RHDirection)(RHDistance)_(LH)(LHDirection)(LHDistance)_(Time)_(Hand)(OnOff)
+// E.g. H113_h03_t2000_F1_14_f0_8_f1_12
+// H: right hand
+// h: left hand
 void Song::exportArduino()
 {
+  	(RH)(1)(5)_(LH)(LHDirection)(LHDistance)_(Time)_(Hand)(OnOff)_(Hand)(OnOff)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)
+    (Time)_(Hand)(OnOff)
+    (Time)_(RH)(1)(5)_(LH)(LHDirection)(LHDistance)
+      
+      
 	// TO-DO:
 	// Iterate through both hand objects
 	// Save the necessary values to the .txt file through
@@ -97,33 +106,51 @@ void Song::exportArduino()
 	}
 
 	// Initialize variables for the loop
-	bool moveLH;
-	int moveDistLH;
-	bool moveRH;
-	int moveDistRH;
-	int timeLH;
-	int timeRH;
-
-
+    string outLine = '';
+  	int time = 0;
+  	int idxLH = 0;
+  	int stateLH = 0;
+  	int idxRH = 0;
+  	int stateRH = 0;
+  	
+  	LH
+    RH
 	// Loop until complete
-	while (true)
+	while (idxLH < LH.positions.size() || idxRH < RH.positions.size())
 	{
+        get LH time
+        get RH time
+        
+        if (LH smaller time) //LH had smaller time
+          add time + LH action to string
+          stateLH++;
+      	else //RH had smaller time
+          add time + RH action to string
+          stateRH++;
+      		
+  		// Example of out to output to file
+		outFile << outLine << endl;
 
-		// Example of out to output to file
-		outFile << "H";
+      	if (stateRH == RH.positions[idxRH].states.size() - 1)
+          idxRH++;
+      	else if (stateLH == LH.positions[idxLH].states.size() - 1)
+          idxLH++;
 	}
 }
 
 // Add the next line of data from time, onOff, and note to the Hand classes
 // Note: Some redundancies and copy-pastes could be removed for clarity
+// Dependent on position/path optimization, take a look at that after when we get a chance
 bool Song::addLine()
 {
 	int moveDistLH = LH.handMoveDist(note[currLine]);
 	int moveDistRH = RH.handMoveDist(note[currLine]);
 	int currTime = time[currLine];
 	bool currOnOff = onOff[currLine];
-	bool moveRH; // Indicate if RH or LH needs to move
-	bool keyRH; // Indicate if RH or LH adds a state
+	//bool moveRH; // Indicate if RH or LH needs to move
+	bool keyRH; // Indicate if RH or LH adds a state (false = LH, true = RH)
+  	int moveHands = 0; //indicate if RH or LH needs to move to reach the next note (0 = Neither, 1 = LH, 2 = RH)
+  	
 
 	// If first line, need to initialize and positions
 	if (currLine == 0)
@@ -140,6 +167,7 @@ bool Song::addLine()
 			keyRH = true;
 		}
 	}
+  
 	// Otherwise, hand might need to move
 	else
 	{
@@ -169,10 +197,10 @@ bool Song::addLine()
 			{
 				if (LH.canMove() == false)
 				{
-					cout << "Note left of LH but is already pressing a key";
+					cout << "Note left of LH but is already pressing a key"; // Position optimization issue
 					return -1;
 				}
-				moveRH = false;
+				moveHands = 1;
 				keyRH = false;
 			}
 
@@ -184,7 +212,7 @@ bool Song::addLine()
 					cout << "Note right of RH but is already pressing a key";
 					return -1;
 				}
-				moveRH = true;
+				moveHands = 2;
 				keyRH = true;
 			}
 
@@ -201,14 +229,14 @@ bool Song::addLine()
 				// Only LH can move
 				else if (RH.canMove() == false)
 				{
-					moveRH = false;
+					moveHands = 1;
 					keyRH = false;
 				}
 
 				// Only RH can move
 				else if (LH.canMove() == false)
 				{
-					moveRH = true;
+					moveHands = 2;
 					keyRH = true;
 				}
 
@@ -219,14 +247,14 @@ bool Song::addLine()
 					// Priority to the hand playing the melody
 					if (fabs(moveDistLH) >= fabs(moveDistRH))
 					{
-						moveRH = true;
+						moveHands = 2;
 						keyRH = true;
 					}
 
 					// If RH is further away
 					else
 					{
-						moveRH = false;
+						moveHands = 1;
 						keyRH = false;
 					}
 				}
@@ -235,13 +263,13 @@ bool Song::addLine()
 	}
 
 	// First move the hand if needed
-	if (moveRH)
+	if (moveHands == 2)
 	{
 		// Obtain new needed hand position
-		int newPos = RH.getHandPos() + moveRH;
+		int newPos = RH.getHandPos() + moveDistRH;
 		RH.addHandPos(currTime, newPos);
 	}
-	else
+	else if (moveHands == 1)
 	{
 		// Obtain new needed hand position
 		int newPos = LH.getHandPos() + moveDistLH;
