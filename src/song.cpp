@@ -82,21 +82,17 @@ void Song::importSong()
 }
 
 // Export current objects into an arduino .txt file
-// Output Formatting: (RH)(RHDirection)(RHDistance)_(LH)(LHDirection)(LHDistance)_(Time)_(Hand)(OnOff)
-// E.g. H113_h03_t2000_F1_14_f0_8_f1_12
-// H: right hand
-// h: left hand
+// Output Formatting:
+// E.g. (Time)_(Hand)(OnOff)
+// 		(Time)_(LH)(LHDirection)(LHDistance)
+// 
+// H: right hand			e.g. H1_5 move right 5 keys
+// h: left hand				e.g. h0_2 move left 2 keys
+// F: right hand fingers	e.g. F1_15 press the 15th fingers
+// f: left hand fingers		e.g. f0_4 release the 4th finger
+// t: time					e.g. t1424 1424 milliseconds from the start
 void Song::exportArduino()
 {
-  	(RH)(1)(5)_(LH)(LHDirection)(LHDistance)_(Time)_(Hand)(OnOff)_(Hand)(OnOff)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)
-    (Time)_(Hand)(OnOff)
-    (Time)_(LH)(LHDirection)(LHDistance)
-      
-      
-	// TO-DO:
-	// Iterate through both hand objects
-	// Save the necessary values to the .txt file through
-
 	// Open/create a new file to store the output for Arduino
 	outFile.open("pianocontrol.txt", ios::out);
 	if (!outFile)
@@ -107,24 +103,28 @@ void Song::exportArduino()
 
 	// Initialize variables for the loop
     string outLine = "";
+
+	// Store LH and RH times
   	int timeLH = 0;
 	int timeRH = 0;
+
+	// Indices to iterate through hand positions and states
   	int idxLH = 0;
   	int stateLH = 0;
-	bool prevFingLH[16];
   	int idxRH = 0;
   	int stateRH = 0;
-	bool prevFingRH[16];
+
+	// Flag to denote new hand position
 	bool newHandPosLH = false;
 	bool newHandPosRH = false;
-	int posDiff;
-	int fingDiff[16];
 
-  	
+	// Value to store calculated difference in hand position (white keys width)
+	int posDiff;
+
 	// Loop until complete
 	while (idxLH < LH.positions.size() || idxRH < RH.positions.size())
 	{
-		// Get Left hand time, hand position then fingers
+		// Get Left hand time, hand position, then fingers
 		if (newHandPosLH)
 		{
 			timeLH = LH.positions[idxLH].time;
@@ -134,7 +134,7 @@ void Song::exportArduino()
 			timeLH = LH.positions[idxLH].states[stateLH].time;
 		}
 
-		// Get Right hand time, hand position then fingers
+		// Get Right hand time, hand position, then fingers
         if (newHandPosRH)
 		{
 			timeRH = RH.positions[idxRH].time;
@@ -144,11 +144,16 @@ void Song::exportArduino()
 			timeLH = LH.positions[idxLH].states[stateLH].time;
 		}
         
-        if (timeLH <= timeRH) // LH had smaller time
+		// LH had smaller time
+        if (timeLH <= timeRH) 
 		{
+			// Add the timestamp
 			outLine += "t" + to_string(timeLH) + "_";
+
+			// Add a hand movement if hand position changed
 			if (newHandPosLH)
 			{
+				// Calculate the position difference
 				posDiff = LH.positions[idxLH].pos - LH.positions[idxLH - 1].pos;
 				if (posDiff > 0)
 				{
@@ -161,6 +166,7 @@ void Song::exportArduino()
 			}
 			else
 			{
+				// Add the finger changes and states
 				state curr = LH.positions[idxLH].states[stateLH];
 				outLine += "f";
 				outLine += to_string(curr.onOff) + "_";
@@ -168,9 +174,14 @@ void Song::exportArduino()
 			}
           stateLH++;
 		}
-      	else //RH had smaller time
+
+		//RH had smaller time
+      	else 
 		{
+			// Add the timestamp
 			outLine += "t" + to_string(timeRH) + "_";
+
+			// Add a hand movement if hand position changed
 			if (newHandPosRH)
 			{
 				posDiff = RH.positions[idxRH].pos - RH.positions[idxRH - 1].pos;
@@ -185,6 +196,7 @@ void Song::exportArduino()
 			}
 			else
 			{
+				// Add the finger changes and states
 				state curr = RH.positions[idxRH].states[stateRH];
 				outLine += "F";
 				outLine += to_string(curr.onOff) + "_";
@@ -193,21 +205,23 @@ void Song::exportArduino()
          	stateRH++;
 		}
       		
-  		// Example of out to output to file
+  		// Output to file
 		outFile << outLine << endl;
 
 		// Reset to the next hand position after the previous is iterated through
       	if (stateLH == LH.positions[idxLH].states.size() - 1)
 		{
-          idxLH++;
-		  stateLH = 0;
-		  newHandPosLH = true;
+			// Increment Hand position index, reset state, and set flag
+			idxLH++;
+			stateLH = 0;
+			newHandPosLH = true;
 		}
 		else if (stateRH == RH.positions[idxRH].states.size() - 1)
 		{
-          idxRH++;
-		  stateRH = 0;
-		  newHandPosRH = true;
+			// Increment Hand position index, reset state, and set flag
+			idxRH++;
+			stateRH = 0;
+			newHandPosRH = true;
 		}
 	}
 }
