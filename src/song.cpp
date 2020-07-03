@@ -115,8 +115,8 @@ void Song::exportArduino()
   	int stateRH = 0;
 
 	// Flag to denote new hand position
-	bool newHandPosLH = false;
-	bool newHandPosRH = false;
+	bool newHandPosLH = true;
+	bool newHandPosRH = true;
 
 	// Value to store calculated difference in hand position (white keys width)
 	int posDiff;
@@ -154,7 +154,17 @@ void Song::exportArduino()
 			if (newHandPosLH)
 			{
 				// Calculate the position difference
-				posDiff = LH.positions[idxLH].pos - LH.positions[idxLH - 1].pos;
+				// If beginning of song, move relative to initial positions
+				if (idxLH == 0)
+				{
+					stateLH == LH.positions[idxLH].pos - initPosLH;
+				}
+				else
+				{
+					posDiff = LH.positions[idxLH].pos - LH.positions[idxLH - 1].pos;
+				}
+
+				// First number depends on direction of motion
 				if (posDiff > 0)
 				{
 					outLine += "h1" + to_string(posDiff);
@@ -184,7 +194,18 @@ void Song::exportArduino()
 			// Add a hand movement if hand position changed
 			if (newHandPosRH)
 			{
-				posDiff = RH.positions[idxRH].pos - RH.positions[idxRH - 1].pos;
+				// Calculate the position difference
+				// If beginning of song, move relative to initial positions
+				if (idxRH == 0)
+				{
+					stateRH == RH.positions[idxRH].pos - initPosRH;
+				}
+				else
+				{
+					posDiff = RH.positions[idxRH].pos - RH.positions[idxRH - 1].pos;
+				}
+				
+				// First number depends on direction of motion
 				if (posDiff > 0)
 				{
 					outLine += "H1" + to_string(posDiff);
@@ -209,14 +230,14 @@ void Song::exportArduino()
 		outFile << outLine << endl;
 
 		// Reset to the next hand position after the previous is iterated through
-      	if (stateLH == LH.positions[idxLH].states.size() - 1)
+      	if (stateLH == LH.positions[idxLH].states.size())
 		{
 			// Increment Hand position index, reset state, and set flag
 			idxLH++;
 			stateLH = 0;
 			newHandPosLH = true;
 		}
-		else if (stateRH == RH.positions[idxRH].states.size() - 1)
+		else if (stateRH == RH.positions[idxRH].states.size())
 		{
 			// Increment Hand position index, reset state, and set flag
 			idxRH++;
