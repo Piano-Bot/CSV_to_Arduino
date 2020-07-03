@@ -10,6 +10,8 @@ struct state
 {
 	int time;
 	bool fingers[16];
+	int updatedFing;
+	bool onOff;
 };
 
 // Hand positions struct to store the next ahnd position
@@ -26,12 +28,13 @@ using namespace std;
 class Hand
 {
 private:
-	// Vector to store all hand positions
-	vector<handPos> positions;
 	int posNum;
 	int stateNum;
 
 public:
+	// Vector to store all hand positions
+	vector<handPos> positions;
+
 	// Function details can be found in .cpp file
 	Hand();
 	~Hand();

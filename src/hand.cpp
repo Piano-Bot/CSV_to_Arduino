@@ -54,6 +54,8 @@ void Hand::addState(int time, int finger, bool onOff)
 			newState.fingers[i] = onOff;
 		}
 	}
+	newState.updatedFing = finger;
+	newState.onOff = onOff;
 
 	// Append created state
 	positions[posNum].states.push_back(newState);
@@ -103,7 +105,7 @@ int Hand::handMoveDist(int note)
 	// Get current position
 	int currentPos = positions[posNum].pos;
 
-	// Get relative position (removing octaves)
+	// Get relative position (removing octaves) - thumb
 	int relativePos = currentPos % 12;
 
 	// Calculate # octaves
@@ -190,7 +192,6 @@ int Hand::findFinger(int note)
 	// Used to figure out if note is white or black
 	bool isBlack[12] = {0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0};
 
-	// Used to determine number of white keys to move
 	// First index is hand's relative white key position
 	// Second index is the finger's relative position
 	int moveRef[7][14] = 

@@ -90,7 +90,7 @@ void Song::exportArduino()
 {
   	(RH)(1)(5)_(LH)(LHDirection)(LHDistance)_(Time)_(Hand)(OnOff)_(Hand)(OnOff)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)_(Time)_(Hand)(OnOff)
     (Time)_(Hand)(OnOff)
-    (Time)_(RH)(1)(5)_(LH)(LHDirection)(LHDistance)
+    (Time)_(LH)(LHDirection)(LHDistance)
       
       
 	// TO-DO:
@@ -106,35 +106,109 @@ void Song::exportArduino()
 	}
 
 	// Initialize variables for the loop
-    string outLine = '';
-  	int time = 0;
+    string outLine = "";
+  	int timeLH = 0;
+	int timeRH = 0;
   	int idxLH = 0;
   	int stateLH = 0;
+	bool prevFingLH[16];
   	int idxRH = 0;
   	int stateRH = 0;
+	bool prevFingRH[16];
+	bool newHandPosLH = false;
+	bool newHandPosRH = false;
+	int posDiff;
+	int fingDiff[16];
+
   	
-  	LH
-    RH
 	// Loop until complete
 	while (idxLH < LH.positions.size() || idxRH < RH.positions.size())
 	{
-        get LH time
-        get RH time
+		// Get Left hand time, hand position then fingers
+		if (newHandPosLH)
+		{
+			timeLH = LH.positions[idxLH].time;
+		}
+		else
+		{
+			timeLH = LH.positions[idxLH].states[stateLH].time;
+		}
+
+		// Get Right hand time, hand position then fingers
+        if (newHandPosRH)
+		{
+			timeRH = RH.positions[idxRH].time;
+		}
+		else
+		{
+			timeLH = LH.positions[idxLH].states[stateLH].time;
+		}
         
-        if (LH smaller time) //LH had smaller time
-          add time + LH action to string
+        if (timeLH <= timeRH) // LH had smaller time
+		{
+			outLine += "t" + to_string(timeLH) + "_";
+			if (newHandPosLH)
+			{
+				posDiff = LH.positions[idxLH].pos - LH.positions[idxLH - 1].pos;
+				if (posDiff > 0)
+				{
+					outLine += "h1" + to_string(posDiff);
+				}
+				else
+				{
+					outLine += "h0" + to_string(-posDiff);
+				}
+			}
+			else
+			{
+				state curr = LH.positions[idxLH].states[stateLH];
+				outLine += "f";
+				outLine += to_string(curr.onOff) + "_";
+				outLine += to_string(curr.updatedFing);
+			}
           stateLH++;
+		}
       	else //RH had smaller time
-          add time + RH action to string
-          stateRH++;
+		{
+			outLine += "t" + to_string(timeRH) + "_";
+			if (newHandPosRH)
+			{
+				posDiff = RH.positions[idxRH].pos - RH.positions[idxRH - 1].pos;
+				if (posDiff > 0)
+				{
+					outLine += "H1" + to_string(posDiff);
+				}
+				else
+				{
+					outLine += "H0" + to_string(-posDiff);
+				}
+			}
+			else
+			{
+				state curr = RH.positions[idxRH].states[stateRH];
+				outLine += "F";
+				outLine += to_string(curr.onOff) + "_";
+				outLine += to_string(curr.updatedFing);
+			}
+         	stateRH++;
+		}
       		
   		// Example of out to output to file
 		outFile << outLine << endl;
 
-      	if (stateRH == RH.positions[idxRH].states.size() - 1)
-          idxRH++;
-      	else if (stateLH == LH.positions[idxLH].states.size() - 1)
+		// Reset to the next hand position after the previous is iterated through
+      	if (stateLH == LH.positions[idxLH].states.size() - 1)
+		{
           idxLH++;
+		  stateLH = 0;
+		  newHandPosLH = true;
+		}
+		else if (stateRH == RH.positions[idxRH].states.size() - 1)
+		{
+          idxRH++;
+		  stateRH = 0;
+		  newHandPosRH = true;
+		}
 	}
 }
 
