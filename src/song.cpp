@@ -1,5 +1,7 @@
 #include "Song.h"
 
+using namespace std;
+
 Song::Song() 
 {
 	currLine = 0;
@@ -399,7 +401,7 @@ bool Song::addLine()
 }
 
 // Find initial starting hand positions using the note vector and buffer
-int Song::initializeHandPos()
+void Song::initializeHandPos()
 {
 	// Initialize variables to store initial hand positions
 	int RHstart;

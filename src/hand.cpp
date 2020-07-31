@@ -1,5 +1,7 @@
 #include "Hand.h"
 
+using namespace std;
+
 // Constructor to create a hand position with no fingers pressed
 Hand::Hand()
 {

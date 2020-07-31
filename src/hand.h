@@ -5,6 +5,8 @@
 #include <fstream>
 #include <math.h>
 
+using std::vector;
+
 // State to store each instance of a key-press changes
 struct state
 {

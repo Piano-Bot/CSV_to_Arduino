@@ -41,6 +41,10 @@ private:
 	// Note: Must be >12 to ensure hands do not physically collide
 	const int handBuffer = 12;
 
+	// Initial hand positions
+	const int initPosLH = 48;
+	const int initPosRH = 72;
+
 public:
 	// Function details can be found in .cpp file
 	Song();
@@ -49,7 +53,7 @@ public:
 	void importSong();
 	void exportArduino();
 	bool addLine();
-	int initializeHandPos();
+	void initializeHandPos();
 	int findFing(int handPos, int note);
 };
 #endif
