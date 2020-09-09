@@ -1,5 +1,5 @@
-#include "Song.h"
 #include "Hand.h"
+#include "Song.h"
 
 using namespace std;
 /* Several objectives and milestones:
@@ -8,8 +8,8 @@ using namespace std;
  * 3. Add optimization for hand paths (later)
  */
 
-// In the Song and Hand classes, break down tasks into smaller functions
-// Add as many as necessary
+ // In the Song and Hand classes, break down tasks into smaller functions
+ // Add as many as necessary
 
 int main(void)
 {
@@ -24,16 +24,17 @@ int main(void)
 	while (!done)
 	{
 		done = song.addLine();
-
-		// In case of error during adding lines
-		if (done == -1)
-		{
-			break;
-		}
 	}
-	
+
 	// Export code in arduino format
 	song.exportArduino();
 
+	cout << "Done!" << endl;
+
 	return 0;
 }
+
+/*
+Removing a note from the txt file: delete the pair (on/off) for that note. Make sure on is first.
+Modifying a note from the txt file: change the midi number for the pair (on/off)
+*/
