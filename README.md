@@ -1,4 +1,6 @@
 # CSV_to_Arduino
+# NOTE: for future uses of this code, only use twinkleModified and the .cpp files with Debugged in their names. 
+# The .cpp files without debugged are still here for reference purposes.
 Conversion Script to convert from the MIDI to CSV output into Arduino-actionable input
 ---
 The goals / steps of this project are the following:
